@@ -5,10 +5,12 @@ from sqlalchemy.orm import Session
 models.Base.metadata.create_all(bind=engine)
 
 # Using Router 
-router = APIRouter()
+router = APIRouter(
+    prefix= "/users"
+)
 
 ## Post Request API
-@router.post("/user", status_code=status.HTTP_201_CREATED, response_model=schemas.GetUser)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.GetUser)
 def create_user(user: schemas.UserCreate, db:Session = Depends(get_db)):
     # Hashing the password 
     hashed_password = utils.hash(user.password)
@@ -21,7 +23,7 @@ def create_user(user: schemas.UserCreate, db:Session = Depends(get_db)):
     return new_user
 
 # Get Request API
-@router.get("/users/{id}", response_model=schemas.GetUser)
+@router.get("/{id}", response_model=schemas.GetUser)
 def get_user(id: int, db:Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == id).first()
     
