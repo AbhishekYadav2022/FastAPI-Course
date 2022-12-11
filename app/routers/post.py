@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 
 # Using Router 
 router = APIRouter(
-    prefix="/posts"
+    prefix="/posts",
+    tags=["Posts"]
 )
 
 # ----------------Doing CRUD Operation------------------#

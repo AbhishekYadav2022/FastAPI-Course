@@ -6,7 +6,8 @@ models.Base.metadata.create_all(bind=engine)
 
 # Using Router 
 router = APIRouter(
-    prefix= "/users"
+    prefix= "/users",
+    tags=["Users"]
 )
 
 ## Post Request API
