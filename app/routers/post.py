@@ -3,7 +3,7 @@ from fastapi import FastAPI, status, HTTPException, Depends, APIRouter
 from fastapi.params import Body
 from datetime import date
 from random import randrange
-from .. import models, schemas
+from .. import models, schemas, oauth2
 from ..database import engine, get_db
 from sqlalchemy.orm import Session
 
@@ -25,8 +25,9 @@ def test_posts(db: Session = Depends(get_db)):
 
 ## Post Request 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
-def create_post(post: schemas.PostCreate, db:Session = Depends(get_db)):
+def create_post(post: schemas.PostCreate, db:Session = Depends(get_db), user_id: int= Depends(oauth2.get_current_user)):
     # new_post = models.Post(title=post.title, content=post.content, published=post.published) # A better way to do this is given below
+    print(user_id)
     new_post = models.Post(**post.dict())
     db.add(new_post)
     db.commit()
@@ -44,7 +45,7 @@ def get_post(id: int, db:Session = Depends(get_db)): # Converting id to integer
 
 ## ------------------- Delete Request---------------##
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db:Session = Depends(get_db)):
+def delete_post(id: int, db:Session = Depends(get_db), user_id: int= Depends(oauth2.get_current_user)):
     post = db.query(models.Post).filter(models.Post.id == id)
     
     # Checking if the post exist 
@@ -55,7 +56,7 @@ def delete_post(id: int, db:Session = Depends(get_db)):
     
 # ## ------------------- Put Request---------------##
 @router.put("/{id}", response_model=schemas.Post)
-def update_post(id: int, updated_post: schemas.PostCreate, db:Session = Depends(get_db)):
+def update_post(id: int, updated_post: schemas.PostCreate, db:Session = Depends(get_db), user_id: int= Depends(oauth2.get_current_user)):
     post_query = db.query(models.Post).filter(models.Post.id == id)
 
     post = post_query.first()
