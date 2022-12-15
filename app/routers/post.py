@@ -17,8 +17,12 @@ router = APIRouter(
 ## ------------------- Get Request---------------##
 
 @router.get("/", response_model=List[schemas.Post])
-def test_posts(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
+def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    # To Get All The Posts Of The Current User 
+    posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all() 
+    
+    # To Get All The Posts 
+    # posts = db.query(models.Post).all()
     return posts
 
 ## ------------------- Post Request---------------##
@@ -28,7 +32,8 @@ def test_posts(db: Session = Depends(get_db)):
 def create_post(post: schemas.PostCreate, db:Session = Depends(get_db), current_user: int= Depends(oauth2.get_current_user)):
     # new_post = models.Post(title=post.title, content=post.content, published=post.published) # A better way to do this is given below
     # print(current_user.email)
-    new_post = models.Post(**post.dict())
+    print(current_user.id)
+    new_post = models.Post(owner_id=current_user.id,**post.dict())
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
@@ -46,12 +51,17 @@ def get_post(id: int, db:Session = Depends(get_db)): # Converting id to integer
 ## ------------------- Delete Request---------------##
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db:Session = Depends(get_db), current_user: int= Depends(oauth2.get_current_user)):
-    post = db.query(models.Post).filter(models.Post.id == id)
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+    post = post_query.first()
     
     # Checking if the post exist 
-    if post.first() == None:
+    if post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No post found")
-    post.delete(synchronize_session = False)
+    
+    if post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete")
+    
+    post_query.delete(synchronize_session = False)
     db.commit()
     
 # ## ------------------- Put Request---------------##
@@ -65,5 +75,9 @@ def update_post(id: int, updated_post: schemas.PostCreate, db:Session = Depends(
     if post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No post found")
     post_query.update(updated_post.dict(), synchronize_session=False)
+    
+    if post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete")
+    
     db.commit()
     return post_query.first()
