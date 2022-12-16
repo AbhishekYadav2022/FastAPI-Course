@@ -17,12 +17,15 @@ router = APIRouter(
 ## ------------------- Get Request---------------##
 
 @router.get("/", response_model=List[schemas.Post])
-def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    # To Get All The Posts Of The Current User 
-    posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all() 
+
+# To Get All The Posts Of The Current User 
+# def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+#     posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all() 
+#     return posts
     
-    # To Get All The Posts 
-    # posts = db.query(models.Post).all()
+# To Get All The Posts 
+def get_posts(db: Session = Depends(get_db)):
+    posts = db.query(models.Post).all()
     return posts
 
 ## ------------------- Post Request---------------##

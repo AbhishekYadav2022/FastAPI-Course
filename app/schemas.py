@@ -8,6 +8,14 @@ class PostBase(BaseModel):
     content: str
     published: bool = True
 
+# Schema For Getting User 
+class GetUser(BaseModel):
+    id: int
+    email: EmailStr
+    created_at: datetime
+    class Config:
+        orm_mode = True
+        
 # Schema For Creating Post 
 class PostCreate(PostBase):
     pass
@@ -17,6 +25,8 @@ class Post(PostBase):
     id: int
     created_at: datetime
     owner_id: int
+    owner: GetUser
+    
     class Config:
         orm_mode = True
         
@@ -25,14 +35,6 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
-# Schema For Getting User 
-class GetUser(BaseModel):
-    id: int
-    email: EmailStr
-    created_at: datetime
-    class Config:
-        orm_mode = True
-        
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
