@@ -24,8 +24,9 @@ router = APIRouter(
 #     return posts
     
 # To Get All The Posts 
-def get_posts(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
+def get_posts(db: Session = Depends(get_db), limit: int = 20, skip: int = 0, search: Optional[str] = ""):
+    print(limit)
+    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all() # Offset is used to skip some results # Filter is used to search or filter posts 
     return posts
 
 ## ------------------- Post Request---------------##
