@@ -1,3 +1,4 @@
-\virtual_env
+virtual_env
 *.sql
-\__pycache__
+__pycache__
+.env
