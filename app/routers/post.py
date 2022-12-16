@@ -1,10 +1,7 @@
 from typing import Optional, List
-from fastapi import FastAPI, status, HTTPException, Depends, APIRouter
-from fastapi.params import Body
-from datetime import date
-from random import randrange
+from fastapi import status, HTTPException, Depends, APIRouter
 from .. import models, schemas, oauth2
-from ..database import engine, get_db
+from ..database import get_db
 from sqlalchemy.orm import Session
 
 # Using Router 
