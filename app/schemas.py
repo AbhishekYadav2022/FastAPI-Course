@@ -30,7 +30,14 @@ class Post(PostBase):
     
     class Config:
         orm_mode = True
-        
+  
+# Schema For Getting Post With Votes   
+class PostOut(PostBase):
+    Post: Post
+    votes: int    
+    class Config:
+        orm_mode = True  
+ 
 # Schema For Creating User 
 class UserCreate(BaseModel):
     email: EmailStr

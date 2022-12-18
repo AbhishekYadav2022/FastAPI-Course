@@ -3,6 +3,7 @@ from fastapi import status, HTTPException, Depends, APIRouter
 from .. import models, schemas, oauth2
 from ..database import get_db
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 # Using Router 
 router = APIRouter(
@@ -13,7 +14,8 @@ router = APIRouter(
 # ----------------Doing CRUD Operation------------------#
 ## ------------------- Get Request---------------##
 
-@router.get("/", response_model=List[schemas.Post])
+# @router.get("/", response_model=List[schemas.PostOut])
+@router.get("/")
 
 # To Get All The Posts Of The Current User 
 # def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
@@ -23,7 +25,11 @@ router = APIRouter(
 # To Get All The Posts 
 def get_posts(db: Session = Depends(get_db), limit: int = 20, skip: int = 0, search: Optional[str] = ""):
     print(limit)
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all() # Offset is used to skip some results # Filter is used to search or filter posts 
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter = True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all() # Offset is used to skip some results # Filter is used to search or filter posts 
+    
+    # Code to get the number of votes 
+    # results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter = True).group_by(models.Post.id).all()
+    
     return posts
 
 ## ------------------- Post Request---------------##
@@ -42,9 +48,11 @@ def create_post(post: schemas.PostCreate, db:Session = Depends(get_db), current_
 
 ## ------------- Get Request With Id ------------##
 
-@router.get("/{id}", response_model=schemas.Post)
+# @router.get("/{id}", response_model=schemas.PostOut) --> This line causes error --> To be fixed 
+@router.get("/{id}")
 def get_post(id: int, db:Session = Depends(get_db)): # Converting id to integer
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter = True).group_by(models.Post.id).filter(models.Post.id == id).first()
+        
     if not post: 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No post found")
     return post
